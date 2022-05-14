@@ -3,14 +3,14 @@
 #define LCD_RS 3
 #define LCD_CE 4
 #define LCD_DC 5 // ****
-#define LCD_Din 12 // ***
+#define LCD_Din 11 // ***
 #define LCD_CLK 13
-#define LCD_BL 7
+#define LCD_BL 6
 
-#define Large_Dir 10
-#define Large_Pul 11 // ***
-#define Small_Dir 8 // ****
-#define Small_Pul 9
+#define Large_Dir 9
+#define Large_Pul 10 // ***
+#define Small_Dir 7// ****
+#define Small_Pul 8
 
 #define pulse_per_rev 400 //
 
@@ -29,8 +29,8 @@ int contrast = 60;
 
 String menuItem1 = "Speed (RPM)";
 String menuItem2 = "Time (sec)";
-String menuItem3 = "2D - Clinostat";
-String menuItem4 = "3D - Clinostat";
+String menuItem3 = "2D Clinostat";
+String menuItem4 = "3D Clinostat";
 String menuItem5 = "Random Mode";
 String menuItem6 = "Reset";
 
@@ -70,7 +70,7 @@ AccelStepper stepperSmall(1, Small_Dir, Small_Pul);
 void setup()
 {
   //
-  pinMode(LCD_BL, OUTPUT);
+  pinMode(LCD_BL, OUTPUT); // set up the back light
 
   encoder = new ClickEncoder(A1, A0, A2);
   encoder->setAccelerationEnabled(false);
@@ -122,7 +122,6 @@ void loop()
 
 void randomMode()
 {
-
   // might need to do something to reset the speed when switching between modes
   time_range_for_random_mode = time_for_random; // time belongs to what we input through the encoder.
   current_time = millis();
@@ -132,10 +131,10 @@ void randomMode()
     random_num_large = random_negative_large * rand();
     random_time_large = (abs(random_num_large % time_range_for_random_mode) + 1); // plus 1 in case it return 0;
 
-        speed_large = (random_num_large % max_rpm_random_mode);
+    speed_large = (random_num_large % max_rpm_random_mode);
 
-            if (speed_large > -1 * min_rpm_random_mode && speed_large <= 0)
-                speed_large = -1 * min_rpm_random_mode;
+    if (speed_large > -1 * min_rpm_random_mode && speed_large <= 0)
+      speed_large = -1 * min_rpm_random_mode;
     if (speed_large > 0 && speed_large < min_rpm_random_mode)
       speed_large = min_rpm_random_mode;
 
@@ -148,9 +147,9 @@ void randomMode()
     random_num_small = random_negative_small * rand();
     random_time_small = (abs(random_num_small % time_range_for_random_mode) + 1); // plus 1 in case it return 0;
 
-        speed_small = (random_num_small % max_rpm_random_mode); 
-        if (speed_small > -1 * min_rpm_random_mode && speed_small < 0)
-            speed_small = -1 * min_rpm_random_mode;
+    speed_small = (random_num_small % max_rpm_random_mode); 
+    if (speed_small > -1 * min_rpm_random_mode && speed_small < 0)
+      speed_small = -1 * min_rpm_random_mode;
     if (speed_small >= 0 && speed_small < min_rpm_random_mode)
       speed_small = min_rpm_random_mode;
 
@@ -472,7 +471,9 @@ void displayIntMenuPage(String menuItem, int value)
   display.display();
 }
 
-void displayStringMenuPage(String menuItem, String value)
+
+//modify this
+void displayStringMenuPage(String menuItem, int value)
 {
     display.setTextSize(1);
     display.clearDisplay();
@@ -483,7 +484,7 @@ void displayStringMenuPage(String menuItem, String value)
     display.setCursor(0, 15);
     display.print("Large RPM:");
     display.setTextSize(1);
-    display.setCursor(25, 15);
+    display.setCursor(65, 15);
     display.print(value);
     display.setTextSize(1);
     display.display();
