@@ -45,9 +45,12 @@ bool press_button = false;
 const float one_rpm = pulse_per_rev / 60;
 const int min_rpm_random_mode = 20;
 const int max_rpm_random_mode = 120;
+const int encoder_delay = 150; //ms
 
 bool start_random_large = true;
 bool start_random_small = true;
+bool start_run_large = false; // use to trigger the motor
+bool start_run_small = false; //
 
 int random_time_large, random_time_small;
 int speed_large, speed_small;
@@ -55,7 +58,7 @@ int random_negative_large, random_negative_small; // use to indicate the directi
 int time_range_for_random_mode;
 
 long random_num_large, random_num_small;
-unsigned long current_time, delta_time_large, delta_time_small;
+unsigned long current_time, delta_time_large, delta_time_small, current_time_encoder;
 
 // CALL //
 ClickEncoder *encoder;
@@ -79,7 +82,7 @@ void setup()
   display.clearDisplay();
   setContrast();
 
-  Timer1.initialize(1000);
+  Timer1.initialize(100);
   Timer1.attachInterrupt(timerIsr);
 
   //   Serial.begin(9600);
@@ -107,13 +110,13 @@ void loop()
       {
         case ClickEncoder::Clicked:
           press_button = true;
-          Serial.print('B');
+          // Serial.print('B');
         break;
       }
     }
-    Serial.print(menuItem); 
+    // Serial.print(menuItem); 
 //    Serial.print(' '); Serial.print(frame); 
-    Serial.println(page);
+    // Serial.println(page);
     operateMenu();
 }
 
@@ -156,8 +159,8 @@ void randomMode()
     stepperSmall.setSpeed(speed_small * one_rpm);
   }
 
-  stepperLarge.runSpeed();
-  stepperSmall.runSpeed();
+  start_run_large = true;
+  start_run_small = true;
 
   if (current_time - delta_time_large > random_time_large * 1000) // milisec to sec
   {
@@ -181,8 +184,11 @@ void clinostatThreeD()
   speed_large = adjustable_speed;
   speed_small = adjustable_speed;
 
-  stepperLarge.runSpeed();
-  stepperSmall.runSpeed();
+  stepperLarge.setSpeed(speed_large * one_rpm);
+  stepperSmall.setSpeed(speed_small * one_rpm);
+
+  start_run_large = true;
+  start_run_small = true;
 }
 
 void clinostatTwoD()
@@ -190,12 +196,16 @@ void clinostatTwoD()
   // might need to have to drive Large Motor to suitable position (parrallel with horizontal axis/the floor)
   speed_small = adjustable_speed;
 
-  stepperSmall.runSpeed();
+  stepperSmall.setSpeed(speed_small * one_rpm);
+
+  start_run_large = false;
+  start_run_small = true;
 }
 
 void defaults()
-{
-
+{ 
+  adjustable_speed = 0;
+  time_for_random = 0;
 }
 
 // ======================= FOR MENU =========================
@@ -295,18 +305,20 @@ void drawMenu()
   {
     displayIntMenuPage(menuItem2, time_for_random);
   }
-  //  else if (page == 2 && menuItem == 3)
-  //  {
-  //    // consider adding what type of string????
-  //  }
-  //  else if (page == 2 && menuItem == 4)
-  //  {
-  //
-  //  }
+   else if (page == 2 && menuItem == 3)
+   {
+     clinostatTwoD();
+     displayIntMenuPage(menuItem3, speed_small);
+   }
+   else if (page == 2 && menuItem == 4)
+   {
+     clinostatThreeD();
+     displayIntMenuPage(menuItem4, speed_large);
+   }
    else if (page == 2 && menuItem == 5)
    {
      randomMode();
-     displayStringMenuPage(menuItem5, speed_large);
+     displayStringMenuPage(menuItem5, speed_large); //maybe this is the one causing the problem
    }
   //  else if (page == 2 && menuItem == 6)
   //  {
@@ -412,7 +424,7 @@ void operateMenu()
 
     if (page == 1 && menuItem == 3)
     {
-      clinostatTwoD();
+      // clinostatTwoD();
       page = 2;
     }
     else if (page == 2 && menuItem == 3)
@@ -420,7 +432,7 @@ void operateMenu()
 
     if (page == 1 && menuItem == 4)
     {
-      clinostatThreeD();
+      // clinostatThreeD();
       page = 2;
     }
     else if (page == 2 && menuItem == 4)
@@ -428,7 +440,7 @@ void operateMenu()
 
     if (page == 1 && menuItem == 5)
     {
-      randomMode();
+      // randomMode();
       page = 2;
     }
     else if (page == 2 && menuItem == 5)
@@ -436,7 +448,7 @@ void operateMenu()
 
     if (page == 1 && menuItem == 6)
     {
-      defaults();
+      // defaults();
     }
     else if (page == 1 && menuItem < 3)
     {
@@ -452,6 +464,10 @@ void operateMenu()
 void timerIsr()
 {
   encoder->service();
+  if (start_run_large == true)
+    stepperLarge.runSpeed();
+  if (start_run_small == true)
+    stepperSmall.runSpeed();
 }
 
 void displayIntMenuPage(String menuItem, int value)
@@ -484,7 +500,7 @@ void displayStringMenuPage(String menuItem, int value)
     display.setCursor(0, 15);
     display.print("Large RPM:");
     display.setTextSize(1);
-    display.setCursor(65, 15);
+    display.setCursor(60, 15);
     display.print(value);
     display.setTextSize(1);
     display.display();
@@ -514,16 +530,21 @@ void readRotaryEncoder()
 {
   value += encoder->getValue();
 
-  if (value / 2 > last)
+  if (millis() - current_time_encoder < encoder_delay)
   {
-    last = value / 2;
-    turn_cw = true;
-    delay(150);
+    if (value / 2 > last)
+    {
+      last = value / 2;
+      turn_cw = true;
+      // delay(150);
+    }
+    else if (value / 2 < last)
+    {
+      last = value / 2;
+      turn_ccw = true;
+      // delay(150);
+    }
+    current_time_encoder = millis();
   }
-  else if (value / 2 < last)
-  {
-    last = value / 2;
-    turn_ccw = true;
-    delay(150);
-  }
+  
 }
