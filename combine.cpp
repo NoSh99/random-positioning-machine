@@ -1,4 +1,7 @@
-// Adjust this before wiring
+// Wiring Config
+// Note:
+// Change the SPEED before entering MODE 1 & 2
+// Change the TIME before entering MODE 3 (RANDOM)
 
 #define LCD_RS 3
 #define LCD_CE 4
@@ -12,7 +15,7 @@
 #define Small_Dir 7// ****
 #define Small_Pul 8
 
-#define pulse_per_rev 400 //
+#define pulse_per_rev 400 // microstepping, 400 pulse/rev equal to half stepping, can change using the instruction in the driver itself
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_PCD8544.h>
@@ -307,19 +310,22 @@ void drawMenu()
   }
    else if (page == 2 && menuItem == 3)
    {
-     clinostatTwoD();
-     displayIntMenuPage(menuItem3, speed_small);
+    clinostatTwoD();
+    displayIntMenuPage(menuItem3, speed_small);
    }
    else if (page == 2 && menuItem == 4)
    {
-     clinostatThreeD();
-     displayIntMenuPage(menuItem4, speed_large);
+    clinostatThreeD();
+    displayStringMenuPage(menuItem4, adjustable_speed);
    }
    else if (page == 2 && menuItem == 5)
    {
-     randomMode();
-     displayStringMenuPage(menuItem5, speed_large); //maybe this is the one causing the problem
+    randomMode();
+    //  displayStringMenuPage(menuItem5, speed_large); //maybe this is the one causing the problem
+    displayMode(menuItem5, true, speed_large, random_time_large, speed_small, random_time_small);
    }
+
+   // maybe blink
   //  else if (page == 2 && menuItem == 6)
   //  {
   //
@@ -503,8 +509,61 @@ void displayStringMenuPage(String menuItem, int value)
     display.setCursor(60, 15);
     display.print(value);
     display.setTextSize(1);
+
+    display.setCursor(0, 25);
+    display.print("2 Motor rotate at the same + constant RPM");
+    display.setTextSize(1);
+
     display.display();
 }
+
+
+void displayMode(String menuItem, bool rpm, int speedLarge, int timeLarge, int speedSmall, int timeSmall)
+{
+    display.setTextSize(1);
+    display.clearDisplay();
+    display.setTextColor(BLACK, WHITE);
+    display.setCursor(15, 0);
+    display.print(menuItem);
+    display.drawFastHLine(0,10,83,BLACK);
+
+    display.setCursor(0, 15);
+    display.print("OuterMotor RPM:");
+    display.setTextSize(1);
+    display.setCursor(60, 15);
+    display.print(speedLarge);
+    display.setTextSize(1);
+
+  if (rpm == true)
+  {
+    display.setCursor(0, 20);
+    display.print("Duration OuterM:");
+    display.setTextSize(1);
+    display.setCursor(60, 20);
+    display.print(timeLarge);
+    display.setTextSize(1);
+  }
+
+    display.setCursor(0, 25);
+    display.print("InnerMotor RPM:");
+    display.setTextSize(1);
+    display.setCursor(60, 25);
+    display.print(speedLarge);
+    display.setTextSize(1);
+
+  if (rpm == true)
+  {
+    display.setCursor(0, 30);
+    display.print("Duration InnerM:");
+    display.setTextSize(1);
+    display.setCursor(60, 30);
+    display.print(timeSmall);
+    display.setTextSize(1);
+  }
+
+    display.display();
+}
+    
 
 void displayMenuItem(String item, int position, boolean selected)
 {
