@@ -10,10 +10,10 @@
 #define LCD_CLK 13
 #define LCD_BL 6
 
-#define Large_Dir 9
-#define Large_Pul 10 // ***
-#define Small_Dir 7// ****
-#define Small_Pul 8
+#define Large_Dir 10
+#define Large_Pul 9 // ***
+#define Small_Dir 8// ****
+#define Small_Pul 7
 
 #define pulse_per_rev 400 // microstepping, 400 pulse/rev equal to half stepping, can change using the instruction in the driver itself
 
@@ -69,8 +69,8 @@ int16_t last, value;
 
 Adafruit_PCD8544 display = Adafruit_PCD8544(LCD_DC, LCD_CE, LCD_RS);
 
-AccelStepper stepperLarge(1, Large_Dir, Large_Pul);
-AccelStepper stepperSmall(1, Small_Dir, Small_Pul);
+AccelStepper stepperLarge(1, Large_Pul, Large_Dir);
+AccelStepper stepperSmall(1, Small_Pul, Small_Dir);
 
 // ==================== SETUP ==================
 void setup()
@@ -434,7 +434,11 @@ void operateMenu()
       page = 2;
     }
     else if (page == 2 && menuItem == 3)
+    {
       page = 1;
+      start_run_large = false;
+      start_run_small = false;
+    }
 
     if (page == 1 && menuItem == 4)
     {
@@ -442,7 +446,11 @@ void operateMenu()
       page = 2;
     }
     else if (page == 2 && menuItem == 4)
+    {
       page = 1;
+      start_run_large = false;
+      start_run_small = false;
+    }
 
     if (page == 1 && menuItem == 5)
     {
@@ -450,7 +458,11 @@ void operateMenu()
       page = 2;
     }
     else if (page == 2 && menuItem == 5)
+    {
       page = 1;
+      start_run_large = false;
+      start_run_small = false;
+    }
 
     if (page == 1 && menuItem == 6)
     {
