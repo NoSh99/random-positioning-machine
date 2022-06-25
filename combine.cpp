@@ -322,7 +322,7 @@ void drawMenu()
    {
     randomMode();
     //  displayStringMenuPage(menuItem5, speed_large); //maybe this is the one causing the problem
-    displayMode(menuItem5, true, speed_large, random_time_large, speed_small, random_time_small);
+    displayMode(menuItem5, speed_large, random_time_large, speed_small, random_time_small);
    }
 
    // maybe blink
@@ -530,7 +530,7 @@ void displayStringMenuPage(String menuItem, int value)
 }
 
 
-void displayMode(String menuItem, bool rpm, int speedLarge, int timeLarge, int speedSmall, int timeSmall)
+void displayMode(String menuItem, int speedLarge, int timeLarge, int speedSmall, int timeSmall)
 {
     display.setTextSize(1);
     display.clearDisplay();
@@ -540,38 +540,42 @@ void displayMode(String menuItem, bool rpm, int speedLarge, int timeLarge, int s
     display.drawFastHLine(0,10,83,BLACK);
 
     display.setCursor(0, 15);
-    display.print("OuterMotor RPM:");
+    display.print("V_L:");
     display.setTextSize(1);
-    display.setCursor(60, 15);
+    display.setCursor(23, 15);
     display.print(speedLarge);
     display.setTextSize(1);
 
-  if (rpm == true)
-  {
-    display.setCursor(0, 20);
-    display.print("Duration OuterM:");
+
+    display.setCursor(52, 15);
+    display.print("tL:");
     display.setTextSize(1);
-    display.setCursor(60, 20);
+    display.setCursor(70, 15);
     display.print(timeLarge);
     display.setTextSize(1);
-  }
+  
 
     display.setCursor(0, 25);
-    display.print("InnerMotor RPM:");
+    display.print("V_S:");
     display.setTextSize(1);
-    display.setCursor(60, 25);
-    display.print(speedLarge);
+    display.setCursor(23, 25);
+    display.print(speedSmall);
     display.setTextSize(1);
 
-  if (rpm == true)
-  {
-    display.setCursor(0, 30);
-    display.print("Duration InnerM:");
+
+    display.setCursor(52, 25);
+    display.print("tS:");
     display.setTextSize(1);
-    display.setCursor(60, 30);
+    display.setCursor(70, 25);
     display.print(timeSmall);
     display.setTextSize(1);
-  }
+
+    display.setCursor(0, 35);
+    display.print("V (RPM)");
+    display.setTextSize(1);
+    display.setCursor(52, 35);
+    display.print("t (s)");
+    display.setTextSize(1);
 
     display.display();
 }
@@ -601,21 +605,21 @@ void readRotaryEncoder()
 {
   value += encoder->getValue();
 
-  if (millis() - current_time_encoder < encoder_delay)
-  {
+  // if (millis() - current_time_encoder < encoder_delay)
+  // {
     if (value / 2 > last)
     {
       last = value / 2;
       turn_cw = true;
-      // delay(150);
+      delay(150);
     }
     else if (value / 2 < last)
     {
       last = value / 2;
       turn_ccw = true;
-      // delay(150);
+      delay(150);
     }
-    current_time_encoder = millis();
-  }
+  //   current_time_encoder = millis();
+  // }
   
 }
